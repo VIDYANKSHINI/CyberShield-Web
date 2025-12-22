@@ -9,6 +9,12 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Century Gothic";
+  src: url("/fonts/navbar/CenturyGothic.ttf") format("truetype");
+  font-display: swap;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -129,5 +135,9 @@
 
   .font-hero {
     font-family: "Unytour";
+  }
+
+  .font-nav-items{
+    font-family: "Century Gothic";
   }
 }
