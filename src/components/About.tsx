@@ -13,35 +13,37 @@ const AboutSection = () => {
       if (!containerRef.current) return;
 
       const ctx = gsap.context(() => {
-        // Fade Up Animation
+        // 1. Editorial Fade Up
+        // Slower, smoother, more "calm" than the previous pop-up animation
         const fadeElements =
           gsap.utils.toArray<HTMLElement>(".animate-fade-up");
         fadeElements.forEach((el) => {
           gsap.fromTo(
             el,
-            { y: 60, opacity: 0 },
+            { y: 40, opacity: 0 },
             {
               y: 0,
               opacity: 1,
-              duration: 1,
-              ease: "power3.out",
+              duration: 1.2,
+              ease: "power2.out", // Softer easing
               scrollTrigger: {
                 trigger: el,
-                start: "top 90%",
+                start: "top 85%", // Triggers slightly later for editorial pacing
                 toggleActions: "play none none reverse",
               },
             }
           );
         });
 
-        // Heavy Numbers Parallax
+        // 2. Heavy Numbers Scroll (The Year)
+        // Keeps the timeline but ensures it's subtle
         const mm = gsap.matchMedia();
         mm.add("(min-width: 768px)", () => {
           gsap.fromTo(
             ".heavy-number-left",
-            { yPercent: 20 },
+            { yPercent: 10 },
             {
-              yPercent: -30,
+              yPercent: -20,
               ease: "none",
               scrollTrigger: {
                 trigger: ".heavy-numbers-container",
@@ -54,9 +56,9 @@ const AboutSection = () => {
 
           gsap.fromTo(
             ".heavy-number-right",
-            { yPercent: -20 },
+            { yPercent: -10 },
             {
-              yPercent: 30,
+              yPercent: 20,
               ease: "none",
               scrollTrigger: {
                 trigger: ".heavy-numbers-container",
@@ -68,19 +70,20 @@ const AboutSection = () => {
           );
         });
 
-        // Image Parallax
+        // 3. Flat Editorial Parallax
+        // Removed the SCALE effect. Pure vertical movement for a "print" feel.
         const parallaxImages = gsap.utils.toArray<HTMLElement>(
           ".parallax-img-wrapper"
         );
         parallaxImages.forEach((wrapper) => {
           const img = wrapper.querySelector<HTMLImageElement>("img");
           if (!img) return;
+
           gsap.fromTo(
             img,
-            { yPercent: -15, scale: 1.15 },
+            { yPercent: -10 }, // Subtle starting position
             {
-              yPercent: 15,
-              scale: 1.15,
+              yPercent: 10, // Subtle ending position
               ease: "none",
               scrollTrigger: {
                 trigger: wrapper,
@@ -93,216 +96,211 @@ const AboutSection = () => {
         });
       }, containerRef);
 
-      // Cleanup function
-      return () => {
-        ctx.revert(); // This kills all animations and ScrollTriggers
-      };
+      return () => ctx.revert();
     },
-    { scope: containerRef, dependencies: [] }
+    { scope: containerRef }
   );
 
   return (
     <section
       ref={containerRef}
-      className="relative w-full bg-white text-[#050e27] antialiased overflow-hidden font-sans"
+      className="relative w-full bg-white text-[#0a0a0a] antialiased overflow-hidden"
+      // Assuming you have the font loaded globally, otherwise falls back to sans
       style={{ fontFamily: "Neuemontreal, sans-serif" }}
     >
-      {/* --- Main Padding Wrapper --- */}
-      <div className="pt-20 md:pt-[10rem] px-6 md:px-12 lg:px-16 max-w-[1920px] mx-auto pb-20 md:pb-32">
+      {/* --- Main Container with generous whitespace --- */}
+      <div className="pt-16 md:pt-32 px-6 md:px-12 lg:px-16 max-w-[1920px] mx-auto pb-16 md:pb-24">
         {/* --- Header Section --- */}
-        <div className="mb-16 md:mb-32">
-          <h1 className="animate-fade-up text-[3rem] md:text-[5rem] lg:text-[7.5rem] leading-[0.9] tracking-tight">
-            <span className="font-bold block">ABOUT</span>
-            <span className="text-[#f9a90d] font-light block">
-              ELGO BATSCALE
+        <div className="mb-20 md:mb-40">
+          <h1 className="animate-fade-up text-[12vw] md:text-[7.5rem] lg:text-[9rem] leading-[0.85] tracking-tight ">
+            <span className="font-bold block">About </span>
+            <span className="text-[#f9a90d] font-light block ml-8 md:ml-24">
+              Us
             </span>
           </h1>
         </div>
 
-        {/* --- Intro Grid --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-x-12 mb-16 md:mb-32 relative z-10">
-          {/* Left Label */}
-          <div className="lg:col-span-3 xl:col-span-4">
-            <div className="animate-fade-up text-[#f9a90d] text-xs md:text-sm uppercase tracking-wider font-semibold">
-              Leading in
-              <br />
-              magnetic
-              <br />
-              tape
-              <br />
-              production
+        {/* --- Intro Grid (Swiss Layout) --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-x-12 mb-20 md:mb-32 relative z-10 border-t border-black/10 pt-8">
+          {/* Label */}
+          {/* <div className="lg:col-span-3 xl:col-span-4">
+            <div className="animate-fade-up text-[#f9a90d] text-xs md:text-xs uppercase tracking-widest font-bold">
+              [ 01 — Mission ]
             </div>
-          </div>
+          </div> */}
 
-          {/* Right Text Content */}
+          {/* Editorial Content */}
           <div className="lg:col-span-9 xl:col-span-8">
-            <h3 className="animate-fade-up text-[1.25rem] md:text-[1.625rem] leading-[1.3] font-medium max-w-3xl">
-              ELGO Batscale AG is a central hub specializing in the development
-              and production of magnetic tape used in a wide range of
-              applications.
+            <h3 className="animate-fade-up text-[1.5rem] md:text-[2.5rem] leading-[1.1] font-medium max-w-4xl indent-12 md:indent-24">
+              We are a student collective dedicated to the art of defensive and
+              offensive security. Bridging the gap between theoretical
+              coursework and real-world infrastructure protection.
             </h3>
           </div>
         </div>
 
-        {/* --- Heavy Numbers (1998) Section --- */}
-        <div className="heavy-numbers-container relative w-full h-[25vh] md:h-[50vh] lg:h-[70vh] flex items-center justify-between pointer-events-none select-none overflow-hidden my-8 md:my-12">
-          {/* Left Number "19" */}
-          <div className="heavy-number-left w-1/2 flex justify-start pl-[2%] md:pl-[5%]">
+        {/* --- NEW SECTION: Asymmetric "Manifesto" (Requested Change #4) --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 lg:gap-x-12 mb-24 md:mb-48 relative z-10">
+          {/* Offset Empty Space to break rhythm */}
+          <div className="hidden lg:block lg:col-span-5"></div>
+
+          <div className="lg:col-span-7 flex flex-col md:flex-row gap-6 md:gap-12 border-t border-black/10 pt-8">
+            {/* <div className="animate-fade-up text-black/50 text-xs uppercase tracking-widest font-bold shrink-0 w-32">
+              [ 02 — Ethos ]
+            </div> */}
+            <div className="animate-fade-up">
+              <p className="text-lg md:text-xl leading-tight font-medium">
+                Security is not a product, it’s a mindset. We believe in{" "}
+                <span className="text-[#f9a90d]">learning by breaking</span>.
+                Through weekly CTFs, reverse engineering workshops, and
+                open-source contributions, we build the immune system of the
+                digital future.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Heavy Numbers (Timeline) --- */}
+        {/* Mobile fix: Uses vw units to ensure it never overflows horizontally */}
+        <div className="heavy-numbers-container relative w-full h-[20vh] md:h-[60vh] flex flex-col md:flex-row items-center justify-center md:justify-between pointer-events-none select-none overflow-hidden my-12 md:my-24">
+          <div className="heavy-number-left w-full md:w-1/2 flex justify-center md:justify-start md:pl-[5%]">
             <span
-              className="text-[8rem] md:text-[20rem] lg:text-[35rem] leading-none font-bold text-transparent"
+              className="text-[35vw] md:text-[25rem] lg:text-[30rem] leading-none font-bold text-transparent"
               style={{ WebkitTextStroke: "1px #e49700" }}
             >
-              19
+              20
             </span>
           </div>
 
-          {/* Right Number "98" */}
-          <div className="heavy-number-right w-1/2 flex justify-end pr-[2%] md:pr-[5%]">
+          <div className="heavy-number-right w-full md:w-1/2 flex justify-center md:justify-end md:pr-[5%] -mt-10 md:mt-0">
             <span
-              className="text-[8rem] md:text-[20rem] lg:text-[35rem] leading-none font-bold text-transparent"
+              className="text-[35vw] md:text-[25rem] lg:text-[30rem] leading-none font-bold text-transparent"
               style={{ WebkitTextStroke: "1px #e49700" }}
             >
-              98
+              23
             </span>
           </div>
         </div>
 
-        {/* --- Stats & Image Grid (Founded Info) --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-x-12 items-end mb-24 md:mb-48 relative z-10">
-          {/* Left: Info List + Small Image */}
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-8 md:gap-10">
-            <div className="animate-fade-up w-full max-w-sm">
-              {/* List Item 1 */}
-              <div className="flex justify-between items-center py-3 border-b border-[#0000001a]">
-                <span className="text-[#050e27] font-medium text-sm md:text-base">
-                  Founded in
-                </span>
-                <span className="text-[#f9a90d] font-semibold text-sm md:text-base">
-                  1998
-                </span>
+        {/* --- Stats & Image Grid --- */}
+        {/* Removed "Founded By" list completely. Replaced with Impact Metrics. */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-x-12 items-end mb-24 md:mb-40 relative z-10">
+          {/* Left: Community Image (Replaces HQ image) */}
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
+            {/* <div className="animate-fade-up text-[#f9a90d] text-xs uppercase tracking-widest font-bold mb-2">
+              [ 03 — Culture ]
+            </div> */}
+            <div className="animate-fade-up w-full overflow-hidden">
+              {/* Editorial Image: Flat, no 3D transforms */}
+              <div className="parallax-img-wrapper relative h-[300px] md:h-[400px] w-full bg-gray-100">
+                <img
+                  src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070&auto=format&fit=crop"
+                  alt="Coding Session"
+                  className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                  loading="lazy"
+                />
               </div>
-              {/* List Item 2 */}
-              <div className="flex justify-between items-center py-3 border-b border-[#0000001a]">
-                <span className="text-[#050e27] font-medium text-sm md:text-base">
-                  Founded by
-                </span>
-                <span className="text-[#f9a90d] font-semibold text-sm md:text-base">
-                  Helmut Grimm
-                </span>
-              </div>
-              {/* List Item 3 */}
-              <div className="flex justify-between items-center py-3 border-b border-[#0000001a] mb-6 md:mb-8">
-                <span className="text-[#050e27] font-medium text-sm md:text-base">
-                  Location
-                </span>
-                <span className="text-[#f9a90d] font-semibold text-sm md:text-base">
-                  Balzers
-                </span>
-              </div>
-
-              {/* Small HQ Image */}
-              <img
-                src="https://cdn.prod.website-files.com/64fee4d928c4095c908ec403/65d5ca3d928ebdfaa2ea0033__A7_4040.jpg"
-                alt="Elgo Headquarters"
-                className="w-full md:w-[220px] h-auto object-cover"
-                loading="lazy"
-              />
+              <p className="mt-4 text-xs text-gray-500">
+                LATE NIGHT SESSION, HALL 4
+              </p>
             </div>
           </div>
 
-          {/* Right: Big Stats (6 Million) */}
-          <div className="lg:col-span-7 xl:col-span-8 w-full">
-            <div className="flex flex-col md:flex-row items-start md:items-end gap-4 md:gap-12">
-              {/* Big Number Block */}
+          {/* Right: Big Impact Metric */}
+          <div className="lg:col-span-7 xl:col-span-8 w-full border-t border-black/10 pt-8">
+            <div className="flex flex-col md:flex-row items-start md:items-end gap-4 md:gap-8">
               <div className="animate-fade-up flex items-baseline leading-none text-[#f9a90d] shrink-0">
-                <span className="text-[6rem] md:text-[10rem] lg:text-[12rem] font-medium tracking-tighter">
-                  6
+                <span className="text-[6rem] md:text-[10rem] lg:text-[12rem] font-bold tracking-tighter">
+                  48
                 </span>
-                <div className="flex flex-col text-base md:text-lg lg:text-xl font-bold ml-2 md:ml-4 mb-4 md:mb-8 text-[#f9a90d] tracking-wide">
-                  <span>MILLION</span>
-                  <span>METERS</span>
+                <div className="flex flex-col text-sm md:text-lg font-sans font-bold ml-4 mb-4 md:mb-10 text-black tracking-tight">
+                  <span>EVENTS</span>
+                  <span>HOSTED</span>
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="animate-fade-up max-w-md mb-4 md:mb-12">
-                <p className="text-[#424c5299] text-base md:text-lg leading-relaxed">
-                  of magnetic tape leave our production every year to be used in
-                  elevator systems and automation technology applications
-                  worldwide.
+              <div className="animate-fade-up max-w-sm mb-6 md:mb-14">
+                <p className="text-black/60 text-sm md:text-base leading-tight">
+                  From internal hackathons to guest lectures by industry
+                  veterans, we provide consistent opportunities for hands-on
+                  growth.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* --- Parallax Gallery Section --- */}
-        <div className="relative w-full mb-24 md:mb-48 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-0">
+        {/* --- Parallax Gallery Section (No Scale/3D) --- */}
+        <div className="relative w-full mb-24 md:mb-48 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {/* Left Image */}
-          <div className="animate-fade-up w-full md:pr-4 lg:pr-12 z-10">
-            <div className="parallax-img-wrapper relative overflow-hidden h-[300px] md:h-[450px] lg:h-[560px] w-full">
+          <div className="animate-fade-up w-full md:mt-24">
+            <div className="parallax-img-wrapper relative overflow-hidden h-[300px] md:h-[500px] w-full bg-gray-100">
               <img
-                src="https://cdn.prod.website-files.com/64fee4d928c4095c908ec403/6511ab6dfdbb14e1d1013f24_elgo-about-1.jpg"
-                alt="Factory Interior"
+                src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2070&auto=format&fit=crop"
+                alt="Cybersecurity Lock Visualization"
                 className="absolute inset-0 w-full h-full object-cover"
               />
+            </div>
+            <div className="mt-4 flex justify-between text-xs font-mono uppercase text-gray-400">
+              <span>Fig. A</span>
+              <span>Encryption Standards</span>
             </div>
           </div>
 
           {/* Right Image */}
-          <div className="animate-fade-up w-full md:pl-4 lg:pl-0 md:mt-24 lg:mt-48 z-20">
-            <div className="parallax-img-wrapper relative overflow-hidden h-[250px] md:h-[350px] lg:h-[476px] w-full shadow-xl">
+          <div className="animate-fade-up w-full">
+            <div className="parallax-img-wrapper relative overflow-hidden h-[300px] md:h-[500px] w-full bg-gray-100">
               <img
-                src="https://cdn.prod.website-files.com/64fee4d928c4095c908ec403/65d5c93b5670ad9c3a4437e0__A7_4266.jpg"
-                alt="Worker with Watch"
+                src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop"
+                alt="Server Room"
                 className="absolute inset-0 w-full h-full object-cover"
               />
+            </div>
+            <div className="mt-4 flex justify-between text-xs font-mono uppercase text-gray-400">
+              <span>Fig. B</span>
+              <span>Infrastructure</span>
             </div>
           </div>
         </div>
 
-        {/* --- Bottom Text & Stats Section --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-x-12 mt-16 md:mt-32">
+        {/* --- Bottom Stats Section --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-x-12 mt-16 md:mt-32 border-t border-black/10 pt-12">
           {/* Left Label */}
           <div className="lg:col-span-3 xl:col-span-4">
-            <div className="animate-fade-up text-[#f9a90d] text-xs md:text-sm uppercase tracking-wider font-semibold">
-              Market leader in
-              <br />
-              shaft information
-              <br />
-              systems
-            </div>
+            {/* <div className="animate-fade-up text-[#f9a90d] text-xs uppercase tracking-widest font-bold">
+              [ 04 — Impact ]
+            </div> */}
           </div>
 
           {/* Right Content */}
           <div className="lg:col-span-9 xl:col-span-8">
             <div className="max-w-3xl mb-12 md:mb-24">
-              <h3 className="animate-fade-up text-[1.25rem] md:text-[1.625rem] leading-[1.3] font-medium">
-                To ensure the safety and reliability of elevator systems, ELGO
-                Batscale AG develops and manufactures sensor systems certified
-                up to SIL3 standard.
+              <h3 className="animate-fade-up text-[1.5rem] md:text-[2rem] leading-[1.2] font-medium">
+                We don't just study security; we actively secure. Our members
+                have identified vulnerabilities in major platforms and
+                contributed to open-source defense tools.
               </h3>
             </div>
 
-            {/* Bottom Stats (950K) */}
+            {/* Bottom Stats (Members) */}
             <div className="flex flex-col md:flex-row items-start md:items-end gap-4 md:gap-12">
               <div className="animate-fade-up flex items-baseline leading-none text-[#f9a90d] shrink-0">
-                <span className="text-[6rem] md:text-[10rem] lg:text-[12rem] font-medium tracking-tighter">
-                  950
+                <span className="text-[6rem] md:text-[10rem] lg:text-[12rem] font-bold tracking-tighter">
+                  250
                 </span>
-                <span className="text-[3rem] md:text-[5rem] lg:text-[6rem] font-medium self-start mt-2 md:mt-8">
-                  K
+                <span className="text-[3rem] md:text-[5rem] lg:text-[6rem] font-light self-start mt-2 md:mt-8">
+                  +
                 </span>
-                <div className="flex flex-col text-base md:text-lg lg:text-xl font-bold ml-2 md:ml-4 mb-4 md:mb-8 text-[#f9a90d] tracking-wide leading-tight">
-                  <span>elevator</span>
-                  <span>systems</span>
+                <div className="flex flex-col text-sm md:text-lg font-bold ml-4 mb-4 md:mb-10 text-black tracking-widest">
+                  <span>ACTIVE</span>
+                  <span>MEMBERS</span>
                 </div>
               </div>
 
               <div className="animate-fade-up max-w-md mb-4 md:mb-12">
-                <p className="text-[#424c5299] text-base md:text-lg leading-relaxed">
-                  worldwide have been equipped with our shaft information
-                  systems.
+                <p className="text-black/60 text-sm md:text-base leading-relaxed">
+                  Students from various disciplines coming together to build a
+                  safer web.
                 </p>
               </div>
             </div>
