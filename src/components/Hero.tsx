@@ -1,4 +1,4 @@
-"use client"; // Add this if using Next.js App Router
+"use client";
 
 import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
@@ -6,7 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
 
-// Register Plugins
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
@@ -26,15 +25,12 @@ export default function LandingPage() {
       smoothWheel: true,
     });
 
-    // Sync Lenis scroll with GSAP ScrollTrigger
     lenis.on("scroll", ScrollTrigger.update);
 
-    // Add Lenis to GSAP Ticker
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
     });
 
-    // Disable GSAP lag smoothing for better sync
     gsap.ticker.lagSmoothing(0);
 
     return () => {
@@ -43,12 +39,12 @@ export default function LandingPage() {
     };
   }, []);
 
-  // 2. GSAP Animations (Scoped to container)
+  // 2. GSAP Animations
   useGSAP(
     () => {
       const tl = gsap.timeline({ defaults: { ease: CUSTOM_EASE } });
 
-      // Title Lines Reveal
+      // Title Reveal
       tl.to(".title-mask-inner", {
         y: "0%",
         duration: 1.5,
@@ -76,62 +72,64 @@ export default function LandingPage() {
         "-=0.8"
       );
 
-      // Parallax Effect on Scroll
-      gsap.to(bgMediaRef.current, {
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-        },
-        y: "20%",
-        scale: 1.1,
-        ease: "none",
-      });
+      // Parallax Effect (Will activate once you add content below this section)
+      if (bgMediaRef.current) {
+        gsap.to(bgMediaRef.current, {
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          },
+          y: "20%",
+          scale: 1.1,
+          ease: "none",
+        });
+      }
     },
     { scope: containerRef }
   );
 
   return (
-    <div className="w-full min-h-screen font-sans text-[#F1EFE5] bg-[#F1EFE5]">
-      {/* --- HERO SECTION --- */}
+    <main className="w-full bg-[#F1EFE5] font-sans text-[#F1EFE5]">
       <section
         ref={containerRef}
-        className="relative w-full h-svh min-h-150 overflow-hidden bg-[#1B1B1C] text-white flex flex-col justify-between"
+        className="relative flex h-svh min-h-[600px] w-full flex-col justify-between overflow-hidden bg-[#1B1B1C] text-white"
       >
         {/* Background Layer */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <div
             ref={bgMediaRef}
-            className="relative w-full h-full scale-110 origin-center"
+            className="relative h-full w-full origin-center scale-110"
           >
             <video
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
               src="https://www.gencellenergy.com/wp-content/uploads/2023/08/GENCELL-VIDEO-HEADER-4-HOME.mp4"
               autoPlay
               muted
               loop
               playsInline
             />
+            {/* Overlay */}
             <div className="absolute inset-0 bg-black/40" />
-            <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-transparent h-[40%]" />
+            <div className="absolute inset-0 h-[40%] bg-gradient-to-b from-black/30 via-transparent to-transparent" />
           </div>
         </div>
 
         {/* Main Title Area */}
-        <div className="relative z-10 w-full px-6 md:px-12 pt-24 md:pt-32 grow flex flex-col justify-center items-start font-hero">
-          <h1 className="font-bold leading-[0.8] uppercase tracking-[-0.04em] text-[clamp(3.5rem,10vw,11rem)] flex flex-col items-start select-none">
-            <div className="overflow-hidden relative block">
+        <div className="font-hero relative z-10 flex grow flex-col items-start justify-center px-6 pt-24 md:px-12 md:pt-32">
+          <h1 className="flex select-none flex-col items-start text-[clamp(3.5rem,10vw,11rem)] font-bold leading-[0.8] tracking-[-0.04em] uppercase">
+            <div className="relative block">
               <span className="title-mask-inner block translate-y-full">
                 Cyber-Security
               </span>
             </div>
-            <div className="overflow-hidden relative block ml-[12vw] md:ml-[8vw]">
+            <div className="relative ml-[12vw] block overflow-hidden md:ml-[8vw]">
               <span className="title-mask-inner block translate-y-full">
                 FOR
               </span>
             </div>
-            <div className="overflow-hidden relative block -ml-[2vw]">
+            <div className="relative -ml-[2vw] block overflow-hidden">
               <span className="title-mask-inner block translate-y-full">
                 Everyone
               </span>
@@ -140,8 +138,8 @@ export default function LandingPage() {
         </div>
 
         {/* Bottom Area */}
-        <div className="relative z-10 w-full px-6 md:px-12 pb-8 md:pb-12 flex flex-col md:flex-row justify-between items-end gap-6 md:gap-10">
-          <div className="font-bold text-lg md:text-xl lg:text-2xl leading-[0.9] uppercase tracking-tighter max-w-sm hidden md:block">
+        <div className="relative z-10 flex w-full flex-col items-end justify-between gap-6 px-6 pb-8 md:flex-row md:gap-10 md:px-12 md:pb-12">
+          <div className="hidden max-w-sm text-lg font-bold leading-[0.9] tracking-tighter uppercase md:block md:text-xl lg:text-2xl">
             <div className="overflow-hidden">
               <div className="bottom-text-line translate-y-full opacity-0">
                 FEARLESSLY FUELING
@@ -156,37 +154,30 @@ export default function LandingPage() {
 
           <div
             ref={ctaButtonsRef}
-            className="flex flex-col md:flex-row gap-4 w-full md:w-auto"
+            className="flex w-full flex-col gap-4 md:w-auto md:flex-row"
           >
             <CTAButton text="U.S. Power Gap" href="#gap" />
             <CTAButton text="Power your project now" href="#contact" />
           </div>
         </div>
       </section>
-
-      {/* --- DUMMY CONTENT (To Enable Scroll) --- */}
-      <div className="h-screen flex items-center justify-center text-black">
-        <h2 className="text-4xl font-bold uppercase tracking-tight">
-          Scroll Content
-        </h2>
-      </div>
-    </div>
+    </main>
   );
 }
 
-// --- HELPER COMPONENTS ---
+// --- Helper Component ---
 
-const CTAButton = ({ text, href }: { text: string; href: string }) => {
+function CTAButton({ text, href }: { text: string; href: string }) {
   return (
     <a
       href={href}
-      className="group relative overflow-hidden inline-flex items-center justify-between px-6 py-4 md:px-8 md:py-3 border border-[#F1EFE5] rounded text-sm md:text-base uppercase tracking-tight transition-colors duration-300 hover:text-black hover:border-transparent min-w-55 w-full md:w-auto"
+      className="group relative inline-flex min-w-[220px] w-full items-center justify-between overflow-hidden rounded border border-[#F1EFE5] px-6 py-4 text-sm uppercase tracking-tight transition-colors duration-300 hover:border-transparent hover:text-black md:w-auto md:px-8 md:py-3 md:text-base"
     >
-      <span className="absolute inset-0 bg-[#F1EFE5] transform origin-top-left scale-0 group-hover:scale-100 transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]" />
+      <span className="absolute inset-0 origin-top-left scale-0 transform bg-[#F1EFE5] transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-100" />
       <span className="relative z-10 font-medium">{text}</span>
-      <span className="relative z-10 transform rotate-180 group-hover:-translate-x-1 transition-transform duration-300 text-lg">
+      <span className="relative z-10 text-lg transform transition-transform duration-300 rotate-180 group-hover:-translate-x-1">
         ↳
       </span>
     </a>
   );
-};
+}

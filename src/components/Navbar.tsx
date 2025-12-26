@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import AnimatedButton from "./ui/animated-button";
 
 // --- TYPES ---
 type NavItemType = "mega" | "dropdown" | "simple";
@@ -72,39 +75,60 @@ export default function Navbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Handle Scroll Effect
+  const headerRef = useRef<HTMLElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Handle Scroll State
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // --- UPDATED LOGIC ---
-  // Previously: activeItem && activeItem.type !== "simple"
-  // Now: We simply check if activeId exists. If ANY item is hovered, show the overlay.
-  const shouldShowOverlay = activeId !== null;
+  // --- GSAP ANIMATION LOGIC ---
+  useGSAP(() => {
+    const isSolid = isScrolled || activeId !== null || isMobileOpen;
+
+    gsap.to(headerRef.current, {
+      backgroundColor: isSolid ? "rgba(0, 82, 205, 1)" : "rgba(0, 82, 205, 0)",
+      backdropFilter: isSolid ? "blur(0px)" : "blur(0px)",
+      boxShadow: isSolid ? "0 4px 30px rgba(0, 0, 0, 0.05)" : "none",
+      duration: 0.4,
+      ease: "power2.out",
+    });
+  }, [isScrolled, activeId, isMobileOpen]);
+
+  // --- OVERLAY ANIMATION ---
+  useGSAP(() => {
+    const shouldShow = activeId !== null;
+    gsap.to(overlayRef.current, {
+      opacity: shouldShow ? 1 : 0,
+      pointerEvents: shouldShow ? "auto" : "none",
+      duration: 0.3,
+      ease: "power2.inOut",
+    });
+  }, [activeId]);
+
+  // Navigation Handler for the Button
+  const handleContactClick = () => {
+    window.location.href = "/contact";
+  };
 
   return (
     <>
       {/* --- OVERLAY --- */}
       <div
-        className={`fixed inset-0 z-30 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
-          shouldShowOverlay
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
+        ref={overlayRef}
+        className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none"
         aria-hidden="true"
       />
 
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          isScrolled || activeId || isMobileOpen
-            ? "bg-[#0052CD]/80 backdrop-blur-md border-b border-white/10 py-3 shadow-lg"
-            : "bg-transparent py-5"
-        }`}
+        ref={headerRef}
+        className="fixed top-0 left-0 w-full z-50 text-white py-4 transition-colors"
         onMouseLeave={() => setActiveId(null)}
       >
-        <div className="max-w-[95%] mx-auto flex items-center justify-between text-white">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* --- LOGO --- */}
           <a
             href="/"
@@ -161,20 +185,18 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-8">
             {NAV_DATA.map((item) => {
               const isActive = activeId === item.id;
-              // Dim if another item is active and this one isn't
               const isDimmed = activeId && !isActive;
 
               return (
                 <div
                   key={item.id}
                   onMouseEnter={() => setActiveId(item.id)}
-                  className="relative h-full flex items-center"
+                  className="relative h-full flex items-center py-2"
                 >
-                  {/* SPLIT RENDERING: <a> for simple, <button> for mega/dropdown */}
                   {item.type === "simple" ? (
                     <a
                       href={item.href}
-                      className={`flex items-center gap-1 text-base font-semibold tracking-wide transition-opacity duration-200 ${
+                      className={`flex items-center gap-1 text-base font-nav font-semibold tracking-wide transition-opacity duration-200 ${
                         isDimmed ? "opacity-50" : "opacity-100"
                       }`}
                     >
@@ -182,12 +204,17 @@ export default function Navbar() {
                     </a>
                   ) : (
                     <button
-                      className={`flex items-center gap-1 text-base font-semibold tracking-wide transition-opacity duration-200 cursor-default focus:outline-none ${
+                      className={`flex items-center gap-1 text-base font-nav font-semibold tracking-wide transition-opacity duration-200 cursor-default focus:outline-none ${
                         isDimmed ? "opacity-50" : "opacity-100"
                       }`}
                     >
                       {item.label}
-                      <ChevronDown size={14} />
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-300 ${
+                          isActive ? "rotate-180" : ""
+                        }`}
+                      />
                     </button>
                   )}
                 </div>
@@ -197,12 +224,20 @@ export default function Navbar() {
 
           {/* --- CTA & MOBILE TOGGLE --- */}
           <div className="flex items-center gap-4 z-50">
-            <a
-              href="/contact"
-              className="hidden md:block bg-white text-[#0052CD] px-5 py-2 rounded-full text-sm font-bold hover:bg-gray-100 transition-colors"
+            {/* FIXED: ANIMATED BUTTON INTEGRATION */}
+            {/* 1. We use a div instead of <a> to avoid button-in-anchor HTML issues */}
+            {/* 2. We remove the 'h-5 w-full' constraint so the button can size itself to h-11 w-48 */}
+            <div
+              className="hidden md:block cursor-pointer"
+              onClick={handleContactClick}
+              role="link"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleContactClick();
+              }}
             >
-              Contact Us
-            </a>
+              <AnimatedButton />
+            </div>
 
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -221,24 +256,21 @@ export default function Navbar() {
           return (
             <div
               key={item.id}
-              className={`absolute top-full left-0 w-full bg-[#0052CD] border-t border-white/10 text-white overflow-hidden transition-all duration-300 origin-top ${
+              className={`absolute top-full left-0 w-full bg-[#0052CD] text-white overflow-hidden transition-all duration-300 origin-top ${
                 isOpen
                   ? "opacity-100 visible translate-y-0"
                   : "opacity-0 invisible -translate-y-2"
               }`}
               onMouseEnter={() => setActiveId(item.id)}
             >
-              <div className="max-w-[95%] mx-auto px-0 py-12 flex gap-20">
-                {/* Optional Sidebar Description */}
-                <div className="w-64 hidden lg:block">
-                  <h3 className="text-xl font-bold mb-2">{item.label}</h3>
+              <div className="max-w-7xl mx-auto px-6 py-12 flex gap-20">
+                <div className="w-64 hidden lg:block shrink-0">
+                  <h3 className="text-xl font-nav-items  mb-2">{item.label}</h3>
                   <p className="text-white/70 text-sm leading-relaxed">
                     Discover our ecosystem of solutions tailored for{" "}
                     {item.label}.
                   </p>
                 </div>
-
-                {/* Columns */}
                 <div className="flex flex-1 gap-16">
                   {item.columns?.map((col, idx) => (
                     <div key={idx} className="min-w-[150px]">
@@ -284,11 +316,9 @@ export default function Navbar() {
             {item.label}
           </a>
         ))}
-        <a
-          href="/contact"
-          className="mt-4 bg-[#0052CD] px-8 py-3 rounded-full text-lg font-bold"
-        >
-          Contact Us
+        {/* Mobile Contact Button */}
+        <a href="/contact" onClick={() => setIsMobileOpen(false)}>
+          <AnimatedButton />
         </a>
       </div>
     </>
