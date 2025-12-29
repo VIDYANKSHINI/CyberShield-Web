@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import HeroSection from '@/components/Hero';
 import AboutSection from '@/components/About';
 import LenisProvider from '@/providers/lenis-provider';
+import TimelineSpinner from '@/components/Timeline';
 ---
 
 <Layout>
@@ -11,5 +12,6 @@ import LenisProvider from '@/providers/lenis-provider';
     <Navbar client:idle />
     <HeroSection client:idle />
     <AboutSection client:idle />
+    <TimelineSpinner client:idle />
   </LenisProvider>
 </Layout>

@@ -78,15 +78,15 @@ export default function Navbar() {
 
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // --- SCROLL LISTENER ---
   useEffect(() => {
+    let timeout: NodeJS.Timeout;
     const handleScroll = () => {
-      // Toggle state only when crossing the threshold to minimize re-renders
-      const offset = window.scrollY;
-      if (offset > 50) setIsScrolled(true);
-      else setIsScrolled(false);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setIsScrolled(window.scrollY > 50);
+      }, 16); // ~60fps
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -117,7 +117,7 @@ export default function Navbar() {
       gsap.to(overlayRef.current, {
         opacity: shouldShow ? 1 : 0,
         pointerEvents: shouldShow ? "auto" : "none",
-        duration: 0.25, // Snappier
+        duration: 0.1, // Snappier
         ease: "power2.out",
       });
     },
