@@ -12,67 +12,57 @@ export type NavItemConfig = {
 
 export const navData: NavItemConfig[] = [
   {
-    id: "events",
-    label: "Events",
-    href: "/events",
-    type: "dropdown",
+    id: "markets",
+    label: "Markets",
+    href: "/markets",
+    type: "mega",
     columns: [
       {
+        heading: "Industries",
         links: [
           {
-            label: "Upcoming Events",
-            href: "/events/upcoming",
-            description: "What's happening next",
+            label: "Telecom",
+            href: "/telecom",
+            description: "Powering connectivity",
           },
           {
-            label: "Past Events",
-            href: "/events/past",
-            description: "Our previous events",
+            label: "Utilities",
+            href: "/utilities",
+            description: "Grid support systems",
           },
+          {
+            label: "EV Charging",
+            href: "/ev",
+            description: "Off-grid charging",
+          },
+        ],
+      },
+      {
+        heading: "Regions",
+        links: [
+          { label: "North America", href: "/na" },
+          { label: "EMEA", href: "/emea" },
+          { label: "APAC", href: "/apac" },
         ],
       },
     ],
   },
-
   {
-    id: "gallery",
-    label: "Gallery",
-    href: "/gallery",
-    type: "simple",
-  },
-
-  {
-    id: "team",
-    label: "Team",
-    href: "/team",
-    type: "simple",
-  },
-
-  {
-    id: "about",
-    label: "About",
-    href: "/about",
+    id: "company",
+    label: "Company",
+    href: "/company",
     type: "dropdown",
     columns: [
       {
         links: [
-          {
-            label: "About Us",
-            href: "/about",
-            description: "Who we are",
-          },
-          {
-            label: "Our Mission",
-            href: "/about/mission",
-            description: "What drives us",
-          },
-          {
-            label: "Contact",
-            href: "/contact",
-            description: "Get in touch",
-          },
+          { label: "About Us", href: "/about" },
+          { label: "Sustainability", href: "/sustainability" },
+          { label: "Careers", href: "/careers" },
+          { label: "Investors", href: "/investors" },
         ],
       },
     ],
   },
+  { id: "products", label: "Products", href: "/products", type: "simple" },
+  { id: "resources", label: "Resources", href: "/resources", type: "simple" },
 ];
