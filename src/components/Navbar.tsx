@@ -304,42 +304,44 @@ export default function Navbar() {
       </header>
 
       {/* --- MOBILE MENU --- */}
-      <div
-        ref={mobileMenuRef}
-        className="fixed inset-0 z-40 bg-zinc-950 text-white flex flex-col pt-32 px-6"
-      >
-        <div className="flex flex-col w-full max-w-lg mx-auto">
-          <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
+      {isMobileOpen && (
+        <div
+          ref={mobileMenuRef}
+          className="fixed inset-0 z-40 bg-zinc-950 text-white flex flex-col pt-32 px-6 md:hidden"
+        >
+          <div className="flex flex-col w-full max-w-lg mx-auto">
+            <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
 
-          {NAV_DATA.map((item) => (
-            <div key={item.id} className="w-full">
+            {NAV_DATA.map((item) => (
+              <div key={item.id} className="w-full">
+                <div className="overflow-hidden py-4">
+                  <a
+                    href={item.href || "#"}
+                    onClick={closeMobile}
+                    className="mobile-nav-link-text block text-5xl font-bold tracking-tight text-white hover:text-blue-500 transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                </div>
+                <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
+              </div>
+            ))}
+
+            <div className="w-full">
               <div className="overflow-hidden py-4">
                 <a
-                  href={item.href || "#"}
+                  href="/contact"
                   onClick={closeMobile}
                   className="mobile-nav-link-text block text-5xl font-bold tracking-tight text-white hover:text-blue-500 transition-colors"
                 >
-                  {item.label}
+                  Contact
                 </a>
               </div>
               <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
             </div>
-          ))}
-
-          <div className="w-full">
-            <div className="overflow-hidden py-4">
-              <a
-                href="/contact"
-                onClick={closeMobile}
-                className="mobile-nav-link-text block text-5xl font-bold tracking-tight text-white hover:text-blue-500 transition-colors"
-              >
-                Contact
-              </a>
-            </div>
-            <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
