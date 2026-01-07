@@ -5,6 +5,7 @@ import HeroSection from '@/components/Hero';
 import AboutSection from '@/components/About';
 import LenisProvider from '@/providers/lenis-provider';
 import TimelineSpinner from '@/components/Timeline';
+import Gallery from "@/components/Gallery"
 ---
 
 <Layout>
@@ -12,6 +13,7 @@ import TimelineSpinner from '@/components/Timeline';
     <Navbar client:load/>
     <HeroSection client:load/>
     <AboutSection client:load />
+    <Gallery client:load/>
     <TimelineSpinner client:load />
   </LenisProvider>
 </Layout>
