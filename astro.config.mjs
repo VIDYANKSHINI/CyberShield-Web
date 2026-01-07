@@ -8,7 +8,7 @@ import tailwindcss from "@tailwindcss/vite";
 // https://astro.build/config
 export default defineConfig({
   site: "https://ioit-cybershield.github.io",
-  base: process.env.NODE_ENV === "production" ? "/CyberShield-Web" : "/",
+  base: "/",
   integrations: [react()],
 
   vite: {
