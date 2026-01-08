@@ -241,7 +241,7 @@ export default function Navbar() {
 
             <button
               onClick={toggleMobile}
-              className="md:hidden p-1 transition-opacity hover:opacity-70 z-[60] relative text-white focus:outline-none"
+              className="md:hidden p-1 transition-opacity hover:opacity-70 z-60 relative text-white focus:outline-none"
               aria-label="Toggle menu"
               aria-expanded={isMobileOpen}
             >
@@ -276,7 +276,7 @@ export default function Navbar() {
 
                 <div className="flex flex-1 gap-16">
                   {item.columns?.map((col, idx) => (
-                    <div key={idx} className="min-w-[150px]">
+                    <div key={idx} className="min-w-37.5">
                       {col.heading && (
                         <h4 className="text-xs font-bold tracking-widest text-white/50 uppercase mb-4">
                           {col.heading}
@@ -310,7 +310,7 @@ export default function Navbar() {
           className="fixed inset-0 z-40 bg-zinc-950 text-white flex flex-col pt-32 px-6 md:hidden"
         >
           <div className="flex flex-col w-full max-w-lg mx-auto">
-            <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
+            <div className="mobile-nav-line w-full h-px bg-white/20 origin-left" />
 
             {NAV_DATA.map((item) => (
               <div key={item.id} className="w-full">
@@ -323,7 +323,7 @@ export default function Navbar() {
                     {item.label}
                   </a>
                 </div>
-                <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
+                <div className="mobile-nav-line w-full h-px bg-white/20 origin-left" />
               </div>
             ))}
 
@@ -337,7 +337,7 @@ export default function Navbar() {
                   Contact
                 </a>
               </div>
-              <div className="mobile-nav-line w-full h-[1px] bg-white/20 origin-left" />
+              <div className="mobile-nav-line w-full h-px bg-white/20 origin-left" />
             </div>
           </div>
         </div>
