@@ -75,7 +75,7 @@ export default function LandingPage() {
     <main className="w-full bg-[#F1EFE5] font-sans text-[#F1EFE5]">
       <section
         ref={containerRef}
-        className="relative flex h-svh min-h-[600px] w-full flex-col justify-between overflow-hidden bg-[#1B1B1C] text-white"
+        className="relative flex h-svh min-h-150 w-full flex-col justify-between overflow-hidden bg-[#1B1B1C] text-white"
       >
         {/* Background Layer */}
         <div className="absolute inset-0 z-0 overflow-hidden">

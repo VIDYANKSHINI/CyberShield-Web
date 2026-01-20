@@ -110,7 +110,7 @@ const AboutSection = () => {
       style={{ fontFamily: "Haffer VF, Arial, sans-serif" }}
     >
       {/* --- OSMO REPLICA SECTION --- */}
-      <div className="pt-24 md:pt-32 pb-12 px-6 md:px-12 lg:px-16 max-w-[1920px] mx-auto">
+      <div className="pt-24 md:pt-32 pb-12 px-6 md:px-12 lg:px-16 max-w-480 mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-x-12">
           {/* Left Column: Micro Graphic (Decorative) */}
           <div className="hidden lg:block lg:col-span-3 xl:col-span-3">
