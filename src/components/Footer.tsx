@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import LogoText from "./ui/logo-text-copyright";
+import { LogoText } from "./ui/logo-text-copyright";
 
 gsap.registerPlugin(ScrollTrigger);
 

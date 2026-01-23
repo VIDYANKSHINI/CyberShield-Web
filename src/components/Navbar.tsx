@@ -1,379 +1,295 @@
-import React, { useRef, useState } from "react";
-import { Menu, X, ChevronDown } from "lucide-react";
+// "use client";
+
+import React, { useState, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import AnimatedButton from "./ui/animated-button";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { NAV_ITEMS } from "@/content/nav";
+import { LogoBlack, LogoIcon, LogoText } from "./ui/logo-text-copyright";
 
-// --- DATA ---
-const NAV_DATA = NAV_ITEMS;
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function Navbar() {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
+  // Refs
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
-  const mobileTl = useRef<gsap.core.Timeline | null>(null);
+  // We use a ref to track scroll state without triggering re-renders
+  const isScrolledRef = useRef(false);
+  const tl = useRef<gsap.core.Timeline | null>(null);
 
-  // --- Desktop overlay (for mega menus) ---
+  // --- 1. HANDLE SCROLL (Pure GSAP, no React Renders) ---
+  useGSAP(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 20;
+
+      // Only animate if the scroll state changed AND menu is closed
+      if (scrolled !== isScrolledRef.current) {
+        isScrolledRef.current = scrolled;
+
+        if (!isOpen && menuRef.current) {
+          gsap.to(menuRef.current, {
+            height: scrolled ? 52 : 60,
+            duration: 0.3,
+            ease: "power2.out",
+          });
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isOpen]); // Re-bind if open state changes to ensure correct logic
+
+  // --- 2. MAIN ANIMATION TIMELINE ---
   useGSAP(
     () => {
-      const shouldShow = activeId !== null;
-      gsap.to(overlayRef.current, {
-        opacity: shouldShow ? 1 : 0,
-        pointerEvents: shouldShow ? "auto" : "none",
-        duration: 0.2,
-        ease: "power2.out",
-      });
-    },
-    { dependencies: [activeId], scope: containerRef },
-  );
+      if (!menuRef.current || !overlayRef.current || !contentRef.current)
+        return;
 
-  // --- Build mobile timeline once ---
-  useGSAP(
-    () => {
-      if (!mobileMenuRef.current || mobileTl.current) return;
+      // Create a context for responsive animations
+      const mm = gsap.matchMedia();
 
-      // Use autoAlpha so visibility is handled correctly (no permanent visibility:hidden)
-      gsap.set(mobileMenuRef.current, { xPercent: 100, autoAlpha: 0 });
+      mm.add(
+        {
+          isMobile: "(max-width: 767px)",
+          isDesktop: "(min-width: 768px)",
+        },
+        (context) => {
+          const { isMobile } = context.conditions as { isMobile: boolean };
 
-      mobileTl.current = gsap
-        .timeline({ paused: true })
-        .to(mobileMenuRef.current, {
-          xPercent: 0,
-          autoAlpha: 1,
-          duration: 0.6,
-          ease: "expo.inOut",
-        })
-        .fromTo(
-          ".mobile-nav-line",
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 0.6,
-            ease: "power3.out",
-            stagger: 0.05,
-          },
-          "-=0.4",
-        )
-        .fromTo(
-          ".mobile-nav-link-text",
-          { y: "100%" },
-          {
-            y: "0%",
-            duration: 0.6,
-            ease: "power3.out",
-            stagger: 0.05,
-          },
-          "<",
-        );
+          // Set initial states explicitly to avoid FOUC or conflicts
+          gsap.set(contentRef.current, { autoAlpha: 0 });
+          gsap.set(overlayRef.current, { autoAlpha: 0 });
+          gsap.set(".nav-link-item", { y: 20, opacity: 0 });
+          gsap.set([".nav-media-card", ".nav-footer"], { y: 20, opacity: 0 });
+
+          // Init Timeline
+          tl.current = gsap
+            .timeline({
+              paused: true,
+              onReverseComplete: () => {
+                // Ensure we land on the correct height (scrolled vs not) when fully closed
+                gsap.set(menuRef.current, {
+                  height: isScrolledRef.current ? 52 : 60,
+                  clearProps: "width,borderRadius", // Clear width so CSS media queries take over if needed
+                });
+                document.body.style.overflow = ""; // Unlock scroll
+              },
+            })
+            .to(menuRef.current, {
+              width: isMobile ? "100%" : "clamp(700px, 75vw, 1200px)",
+              height: isMobile ? "100dvh" : "min(72vh, 600px)",
+              borderRadius: isMobile ? "0px" : "16px",
+              duration: 0.55,
+              ease: "power3.inOut",
+            })
+            .to(
+              overlayRef.current,
+              {
+                autoAlpha: 1,
+                duration: 0.4,
+                ease: "power2.out",
+              },
+              "<",
+            )
+            .to(
+              contentRef.current,
+              {
+                autoAlpha: 1,
+                duration: 0.3,
+              },
+              "-=0.2",
+            )
+            .to(
+              ".nav-link-item",
+              {
+                y: 0,
+                opacity: 1,
+                stagger: 0.05,
+                duration: 0.4,
+                ease: "power2.out",
+              },
+              "-=0.2",
+            )
+            .to(
+              [".nav-media-card", ".nav-footer"],
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.4,
+                stagger: 0.1,
+                ease: "power2.out",
+              },
+              "<",
+            );
+        },
+      );
+
+      return () => mm.revert(); // Cleanup matchMedia
     },
     { scope: containerRef },
   );
 
-  // --- Play / reverse on state change ---
-  useGSAP(
-    () => {
-      if (!mobileTl.current) return;
+  // --- 3. TOGGLE LOGIC ---
+  const toggleMenu = () => {
+    if (!tl.current) return;
 
-      if (isMobileOpen) {
-        mobileTl.current.play();
-        document.body.style.overflow = "hidden";
-      } else {
-        mobileTl.current.reverse();
-        document.body.style.overflow = "";
-      }
-    },
-    { dependencies: [isMobileOpen], scope: containerRef },
-  );
-
-  const handleContactClick = () => {
-    window.location.href = "/contact";
+    if (!isOpen) {
+      setIsOpen(true);
+      document.body.style.overflow = "hidden"; // Lock scroll
+      tl.current.play();
+    } else {
+      setIsOpen(false);
+      // Don't unlock scroll yet; wait for onReverseComplete in timeline
+      tl.current.reverse();
+    }
   };
 
-  const closeDesktopMenus = () => setActiveId(null);
-  const toggleMobile = () => setIsMobileOpen((v) => !v);
-  const closeMobile = () => setIsMobileOpen(false);
+  // --- 4. OUTSIDE CLICK / ESC ---
+  useGSAP(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") toggleMenu();
+    };
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        toggleMenu();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]); // Only attach when open
 
   return (
-    <div ref={containerRef}>
-      {/* --- BACKDROP OVERLAY (Desktop) --- */}
+    <div
+      ref={containerRef}
+      className="absolute top-0 left-0 right-0 z-50 flex justify-center p-0 md:p-6 pointer-events-none"
+    >
+      {/* OVERLAY */}
       <div
         ref={overlayRef}
-        className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm opacity-0 pointer-events-auto"
         aria-hidden="true"
-        onClick={closeDesktopMenus}
+        onClick={toggleMenu}
       />
 
-      {/* --- HEADER --- */}
-      <header
-        className="absolute top-0 left-0 w-full z-50 py-4 text-white transition-colors duration-300 hover:bg-zinc-950/80 hover:backdrop-blur-md hover:shadow-sm"
-        onMouseLeave={closeDesktopMenus}
+      {/* MAIN NAVBAR CONTAINER */}
+      {/* Note: No dynamic style={{}} props here! We use defaults and let GSAP handle changes. */}
+      <div
+        ref={menuRef}
+        className="pointer-events-auto relative overflow-hidden bg-white/80 backdrop-blur-2xl border border-black/10 shadow-sm transition-none ease-out origin-top md:rounded-xl w-full md:w-[720px] h-[60px]"
       >
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          {/* --- LOGO --- */}
+        {/* --- HEADER (Always Visible) --- */}
+        <div className="absolute top-0 left-0 w-full flex items-center justify-between px-1 h-[60px] z-20">
+          {/* LOGO ICON */}
           <a
             href="/"
-            className="z-50 flex items-center gap-3 h-10 hover:opacity-80 transition-opacity"
+            aria-label="Home"
+            className="flex items-center justify-center p-2 w-[60px] h-[60px] group"
           >
-            <Logo />
+            <LogoIcon />
           </a>
 
-          {/* --- DESKTOP NAV --- */}
-          <nav className="hidden md:flex items-center gap-8">
-            {NAV_DATA.map((item) => {
-              const isActive = activeId === item.id;
-              const isDimmed = activeId && !isActive;
-
-              return (
-                <div
-                  key={item.id}
-                  onMouseEnter={() => setActiveId(item.id)}
-                  className="relative h-full flex items-center py-2"
-                >
-                  {item.type === "simple" ? (
-                    <a
-                      href={item.href}
-                      className={`flex items-center gap-1 text-base font-nav font-semibold tracking-wide transition-opacity duration-200 ${
-                        isDimmed ? "opacity-40" : "opacity-100"
-                      }`}
-                    >
-                      {item.label}
-                    </a>
-                  ) : (
-                    <button
-                      type="button"
-                      className={`flex items-center gap-1 text-base font-nav font-semibold tracking-wide transition-opacity duration-200 cursor-default focus:outline-none ${
-                        isDimmed ? "opacity-40" : "opacity-100"
-                      }`}
-                      aria-haspopup="menu"
-                      aria-expanded={isActive}
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform duration-300 ${
-                          isActive ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-
-          {/* --- CTA & MOBILE TOGGLE --- */}
-          <div className="flex items-center gap-4 z-50">
-            <div
-              className="hidden md:block cursor-pointer"
-              onClick={handleContactClick}
-              role="link"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleContactClick();
-              }}
-            >
-              <AnimatedButton />
-            </div>
-
-            <button
-              onClick={toggleMobile}
-              className="md:hidden p-1 transition-opacity hover:opacity-70 z-60 relative text-white focus:outline-none"
-              aria-label="Toggle menu"
-              aria-expanded={isMobileOpen}
-            >
-              {isMobileOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
+          {/* LOGO TEXT (Fades out on open) */}
+          <div
+            className={`transition-opacity duration-300 ${isOpen ? "opacity-0 md:opacity-100" : "opacity-100"}`}
+          >
+            <LogoBlack />
           </div>
+
+          {/* MENU BUTTON */}
+          <button
+            onClick={toggleMenu}
+            className="w-[60px] h-[60px] flex items-center justify-center group cursor-pointer"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+          >
+            <div className="relative w-5 h-5 flex items-center justify-center">
+              <span
+                className={`absolute h-[2px] bg-black transition-all duration-300 ease-out ${isOpen ? "w-5 rotate-45 top-1/2 -translate-y-1/2" : "w-5 -translate-y-1"}`}
+              />
+              <span
+                className={`absolute h-[2px] bg-black transition-all duration-300 ease-out ${isOpen ? "w-5 -rotate-45 top-1/2 -translate-y-1/2" : "w-5 translate-y-1"}`}
+              />
+              <div className="absolute inset-[-10px] rounded-lg bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10" />
+            </div>
+          </button>
         </div>
 
-        {/* --- DESKTOP MEGA MENUS --- */}
-        {NAV_DATA.map((item) => {
-          if (item.type === "simple") return null;
-          const isOpen = activeId === item.id;
-
-          return (
-            <div
-              key={item.id}
-              className={`absolute top-full left-0 w-full bg-zinc-950/95 backdrop-blur-md text-white overflow-hidden transition-all duration-200 ease-out origin-top border-t border-white/10 ${
-                isOpen
-                  ? "opacity-100 visible translate-y-0"
-                  : "opacity-0 invisible -translate-y-2"
-              }`}
-              onMouseEnter={() => setActiveId(item.id)}
-            >
-              <div className="max-w-7xl mx-auto px-6 py-12 flex gap-20">
-                <div className="w-64 hidden lg:block shrink-0">
-                  <h3 className="text-xl font-nav-items mb-2">{item.label}</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">
-                    Discover our ecosystem of solutions tailored for{" "}
-                    {item.label}.
-                  </p>
-                </div>
-
-                <div className="flex flex-1 gap-16">
-                  {item.columns?.map((col, idx) => (
-                    <div key={idx} className="min-w-37.5">
-                      {col.heading && (
-                        <h4 className="text-xs font-bold tracking-widest text-white/50 uppercase mb-4">
-                          {col.heading}
-                        </h4>
-                      )}
-                      <ul className="space-y-3">
-                        {col.links.map((link) => (
-                          <li key={link.label}>
-                            <a
-                              href={link.href}
-                              className="block text-lg font-light text-white/90 hover:text-[#a5a5a5] hover:translate-x-1 transition-all duration-200"
-                            >
-                              {link.label}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </header>
-
-      {/* --- MOBILE MENU --- */}
-      {isMobileOpen && (
+        {/* --- DROPDOWN CONTENT --- */}
         <div
-          ref={mobileMenuRef}
-          className="fixed inset-0 z-40 bg-zinc-950 text-white flex flex-col pt-32 px-6 md:hidden"
+          id="sunday-nav-content"
+          ref={contentRef}
+          className="absolute inset-0 pt-[80px] px-6 pb-6 flex flex-col justify-between opacity-0 invisible"
         >
-          <div className="flex flex-col w-full max-w-lg mx-auto">
-            <div className="mobile-nav-line w-full h-px bg-white/20 origin-left" />
-
-            {NAV_DATA.map((item) => (
-              <div key={item.id} className="w-full">
-                <div className="overflow-hidden py-4">
-                  <a
-                    href={item.href || "#"}
-                    onClick={closeMobile}
-                    className="mobile-nav-link-text block text-5xl font-bold tracking-tight text-white hover:text-blue-500 transition-colors"
-                  >
-                    {item.label}
-                  </a>
-                </div>
-                <div className="mobile-nav-line w-full h-px bg-white/20 origin-left" />
-              </div>
-            ))}
-
-            <div className="w-full">
-              <div className="overflow-hidden py-4">
+          {/* GRID: Links & Video */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+            <nav className="flex flex-col gap-2">
+              {NAV_ITEMS.map((item) => (
                 <a
-                  href="/contact"
-                  onClick={closeMobile}
-                  className="mobile-nav-link-text block text-5xl font-bold tracking-tight text-white hover:text-blue-500 transition-colors"
+                  key={item.id}
+                  href={item.href}
+                  onClick={toggleMenu}
+                  className="nav-link-item block text-3xl md:text-4xl font-medium text-black/90 hover:text-black hover:translate-x-2 transition-all duration-200 py-1"
                 >
-                  Contact
+                  {item.label}
                 </a>
+              ))}
+            </nav>
+
+            <div className="hidden md:flex flex-col nav-media-card h-full max-h-[400px]">
+              <div className="relative w-full h-full rounded-lg overflow-hidden bg-black group cursor-pointer">
+                <video
+                  className="absolute inset-0 w-full h-full object-cover opacity-90 transition-opacity duration-500 group-hover:opacity-60"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  src="https://stream.mux.com/2b02N5Y501hFejR2Yas02RZAb8sMOLsWqzE68RX7T8hp3s.m3u8"
+                />
+                {/* Video Overlay Button */}
+                <div className="absolute bottom-6 left-6 flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 text-white transition-colors duration-200 group-hover:bg-white group-hover:text-black">
+                  <div className="w-4 h-4 rounded-full bg-current flex items-center justify-center">
+                    <svg
+                      className="w-2 h-2 text-transparent fill-current stroke-none"
+                      viewBox="0 0 24 24"
+                    >
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium">Our story</span>
+                </div>
               </div>
-              <div className="mobile-nav-line w-full h-px bg-white/20 origin-left" />
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
-// --- EXTRACTED LOGO COMPONENT ---
-export function Logo() {
-  return (
-    <>
-      <svg
-        className="h-full w-auto"
-        viewBox="0 0 1107 166"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M257.9 94.576L269.292 106.096C264.684 110.533 259.478 113.861 253.676 116.08C247.958 118.213 241.9 119.28 235.5 119.28C224.492 119.28 215.532 117.061 208.62 112.624C201.708 108.187 196.588 102.512 193.26 95.6C190.017 88.688 188.396 81.3067 188.396 73.456C188.31 65.52 189.974 58.0107 193.388 50.928C196.801 43.8453 202.006 38.0427 209.004 33.52C216.001 28.912 224.833 26.608 235.5 26.608C247.532 26.608 258.412 31.1307 268.14 40.176L257.004 50.928C254.017 48.112 250.646 46.0213 246.892 44.656C243.137 43.2907 239.34 42.608 235.5 42.608C228.332 42.608 222.486 44.144 217.964 47.216C213.441 50.288 210.113 54.1707 207.98 58.864C205.846 63.5573 204.822 68.4213 204.908 73.456C204.908 78.4907 205.932 83.2693 207.98 87.792C210.028 92.3147 213.27 96.0693 217.708 99.056C222.23 102.043 228.161 103.536 235.5 103.536C239.34 103.536 243.265 102.768 247.276 101.232C251.372 99.696 254.913 97.4773 257.9 94.576ZM336.905 29.04H355.337V29.808L321.673 81.264V118H304.905V81.264L272.521 29.808V29.04H290.697L313.353 65.776L336.905 29.04ZM424.833 72.048C429.953 73.84 433.579 76.8267 435.713 81.008C437.931 85.104 439.041 88.688 439.041 91.76C439.041 98.416 437.547 103.664 434.561 107.504C431.574 111.259 427.563 113.947 422.529 115.568C417.494 117.189 411.905 118 405.761 118C391.595 118 377.515 118 363.521 118V29.04C377.515 29.04 391.595 29.04 405.761 29.04C411.563 29.04 416.769 29.936 421.377 31.728C425.985 33.52 429.611 36.336 432.257 40.176C434.987 44.016 436.353 48.9227 436.353 54.896C436.353 58.3093 435.457 61.552 433.665 64.624C431.873 67.6107 428.929 70.0853 424.833 72.048ZM380.033 44.272V64.752H405.761C410.966 64.752 414.593 63.8133 416.641 61.936C418.689 59.9733 419.713 57.7547 419.713 55.28C419.713 53.9147 419.286 52.3787 418.433 50.672C417.579 48.9653 416.129 47.472 414.081 46.192C412.033 44.912 409.259 44.272 405.761 44.272H380.033ZM405.761 102.384C407.979 102.384 410.369 102.085 412.929 101.488C415.574 100.805 417.793 99.696 419.585 98.16C421.462 96.624 422.401 94.448 422.401 91.632C422.401 88.9867 421.462 86.768 419.585 84.976C417.793 83.184 415.574 81.8187 412.929 80.88C410.369 79.9413 407.979 79.472 405.761 79.472H380.033V102.384H405.761ZM470.786 81.392V101.488H520.706V118H454.146C454.146 100.592 454.146 83.184 454.146 65.776H470.786H518.914V81.392H470.786ZM454.146 29.04H520.706V45.296H454.146C454.146 41.712 454.146 38.0853 454.146 34.416C454.146 32.624 454.146 30.832 454.146 29.04ZM591.486 86.512L618.366 116.848V118H598.398L572.798 88.688C572.627 88.432 572.542 88.1333 572.542 87.792V79.728V73.2H581.886C587.262 73.2 591.144 71.7067 593.534 68.72C595.923 65.7333 597.118 62.4907 597.118 58.992C597.118 55.408 595.88 52.1653 593.406 49.264C591.016 46.2773 587.176 44.784 581.886 44.784H556.414V118H539.646V29.04C546.728 29.04 553.811 29.04 560.894 29.04C567.891 29.04 574.888 29.0827 581.886 29.168C592.382 29.424 600.318 32.496 605.694 38.384C611.155 44.1867 613.886 50.928 613.886 58.608C613.886 62.6187 613.203 66.544 611.838 70.384C610.472 74.224 608.126 77.5947 604.798 80.496C601.47 83.312 597.032 85.3173 591.486 86.512ZM663.341 62.576C672.898 63.5147 681.133 65.904 688.045 69.744C695.042 73.584 698.711 80.6667 699.053 90.992C699.053 97.5627 697.303 102.939 693.805 107.12C690.391 111.301 685.826 114.373 680.109 116.336C674.477 118.299 668.375 119.28 661.805 119.28C652.674 119.28 644.738 117.659 637.997 114.416C631.341 111.088 626.349 105.413 623.021 97.392L636.973 90.224C639.106 95.088 642.434 98.672 646.957 100.976C651.565 103.195 656.599 104.304 662.061 104.304C665.559 104.304 668.845 103.877 671.917 103.024C675.074 102.085 677.591 100.635 679.469 98.672C681.431 96.7093 682.413 94.1493 682.413 90.992C682.413 86.8107 680.493 83.7387 676.653 81.776C672.813 79.728 667.906 78.448 661.933 77.936C655.789 77.2533 650.071 76.0587 644.781 74.352C639.49 72.6453 635.181 70 631.853 66.416C628.61 62.7467 626.989 57.584 626.989 50.928C626.989 44.8693 628.695 39.9627 632.109 36.208C635.607 32.368 639.959 29.552 645.165 27.76C650.37 25.968 655.789 25.072 661.421 25.072C666.029 25.072 670.551 25.584 674.989 26.608C679.511 27.632 683.607 29.4667 687.277 32.112C691.031 34.672 694.018 38.2133 696.237 42.736L682.925 49.52C681.303 46.8747 678.573 44.5707 674.733 42.608C670.978 40.6453 666.711 39.664 661.933 39.664C655.703 39.664 651.053 40.816 647.981 43.12C644.994 45.3387 643.501 48.112 643.501 51.44C643.501 54 644.397 56.048 646.189 57.584C647.981 59.0347 650.37 60.144 653.357 60.912C656.343 61.68 659.671 62.2347 663.341 62.576ZM774.562 29.04H791.202V118H774.562V82.032H730.914V118H714.146V29.04H730.914V66.544H774.562V29.04ZM833.161 118H816.521V29.04H833.161V118ZM875.161 81.392V101.488H925.081V118H858.521C858.521 100.592 858.521 83.184 858.521 65.776H875.161H923.289V81.392H875.161ZM858.521 29.04H925.081V45.296H858.521C858.521 41.712 858.521 38.0853 858.521 34.416C858.521 32.624 858.521 30.832 858.521 29.04ZM960.789 102.512H1006.48V118H944.021V29.04H960.789V102.512ZM1056.21 29.04C1066.37 29.04 1074.69 31.1733 1081.17 35.44C1087.66 39.7067 1092.48 45.1253 1095.64 51.696C1098.88 58.2667 1100.55 65.3067 1100.63 72.816C1100.8 80.4107 1099.31 87.664 1096.15 94.576C1093.08 101.403 1088.21 107.035 1081.56 111.472C1074.99 115.824 1066.54 118 1056.21 118C1045.29 118 1033.64 118 1021.27 118V101.872H1056.21C1062.96 101.872 1068.37 100.464 1072.47 97.648C1076.57 94.7467 1079.55 91.0773 1081.43 86.64C1083.31 82.2027 1084.16 77.552 1083.99 72.688C1083.91 67.9947 1082.88 63.5573 1080.92 59.376C1078.96 55.1947 1075.93 51.7813 1071.83 49.136C1067.82 46.4053 1062.61 45.04 1056.21 45.04H1021.27V29.04C1032.19 29.04 1043.84 29.04 1056.21 29.04Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M74.1358 81.494C70.0447 76.4165 63.6295 77.5779 59.1227 80.351C62.0076 79.1235 64.0083 78.6457 66.7572 79.4521C62.8944 79.5762 57.803 82.897 56.1533 86.1544C60.9795 80.4948 69.0813 79.9392 74.1358 81.494Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M72.8242 76.0548L75.0849 76.4336C70.8645 77.2651 67.3461 76.8652 64.4836 76.1512C71.4372 79.1406 77.6359 76.9193 83.9191 73.7701C76.6039 73.8929 78.0556 70.6275 73.756 69.5928L74.565 71.8379C71.4399 70.225 69.7388 70.0046 66.3827 70.2619L69.6899 71.558C67.9017 71.5409 66.1518 72.2074 64.7291 73.3306L68.291 72.7974C68.423 73.9219 69.3996 74.8722 70.1162 75.3434C69.3481 74.1938 69.3349 73.6632 69.5857 72.9069C69.7176 74.0196 71.494 75.9862 74.4924 74.5541C73.5778 74.3469 73.1753 74.0051 73.1898 73.3979C76.8837 72.5281 75.6326 75.3764 72.8242 76.0574V76.0548Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M82.123 77.2962C80.4681 77.349 75.0401 79.7367 74.4727 80.6698C80.6423 79.7855 90.0453 79.1691 90.3964 88.453C92.4551 87.4592 93.3829 83.328 92.0803 79.9135C92.2638 81.7534 92.4314 83.7662 91.5076 85.1322C91.2212 82.6839 87.2845 79.2509 85.4976 79.8092C85.0858 77.5457 81.4487 79.9914 82.1217 77.2949L82.123 77.2962Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M88.9764 85.0131C86.2393 81.1856 80.7546 81.2172 78.6562 81.4033C78.6813 81.4245 88.8563 85.0065 88.9764 85.0131Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M83.291 84.7203C67.3726 85.1743 59.7314 100.878 74.4661 103.726C54.5054 101.176 63.845 84.2372 81.6018 83.8967C74.6601 83.246 53.8877 85.8184 61.0036 99.0394C48.8385 86.3925 70.8976 81.9961 78.7881 82.5992C72.3427 81.9208 56.5351 82.52 55.0926 91.1348C53.2886 82.8685 57.7044 74.9335 63.8358 73.4922C57.6225 74.2511 53.7676 80.4611 53.6449 85.8368C52.2764 75.7069 58.6176 65.8925 68.7517 63.1762C79.7529 60.2276 91.0641 66.7596 94.0111 77.762C96.6096 87.4629 91.8388 97.4041 83.1326 101.641C73.2519 103.024 75.63 91.0213 80.8152 87.8892C71.2921 90.4814 70.4489 105.76 82.2194 102.127C65.7322 107.673 65.7031 86.6776 83.291 84.7216V84.7203ZM96.3931 77.1205C93.0939 64.8036 80.4299 57.4916 68.1143 60.7925C55.7987 64.0922 48.4874 76.7575 51.7881 89.0745C55.0873 101.391 67.7514 108.703 80.0669 105.402C92.3825 102.103 99.6938 89.4374 96.3931 77.1205Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M81.7999 89.2314C76.0789 94.8897 78.626 102.595 85.5202 99.3218C79.5709 99.5039 78.3198 94.2258 81.7999 89.2314Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M84.7893 73.0051C86.3888 73.3377 87.7824 74.2379 88.7432 75.662C88.3987 74.3369 87.2215 72.4838 86.0166 71.8318C84.363 69.2052 81.5098 67.7455 77.8423 67.9844C79.4339 68.1731 84.0225 69.7886 84.4356 71.6549C84.4673 72.4824 83.7929 72.7979 84.7906 73.0051H84.7893Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M86.1007 74.9707C85.0186 75.005 84.0129 76.0728 83.9575 77.4454C85.0278 77.3174 87.1974 75.8141 86.1007 74.9707Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M64.1497 68.919C67.9004 66.9365 72.9021 66.2713 78.8738 67.6955C75.9242 65.8305 70.5979 65.292 65.9208 66.9339C61.1896 68.5956 57.15 72.5525 56.1404 77.2209C57.7056 74.2486 60.3014 70.9529 64.1497 68.919Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M108.875 21.7426C118.784 20.6708 128.872 19.1391 139.273 17.1519V28.8678L145.082 32.0647L147.996 33.6701V7L137.556 8.99175C123.208 11.7333 109.386 13.5686 95.7421 14.5116C90.3195 14.8842 84.9309 15.1142 79.5469 15.2016C76.1794 15.2568 72.8119 15.2568 69.4396 15.2016C64.0556 15.1142 58.6666 14.8842 53.2439 14.5116C39.6005 13.5732 25.7785 11.7333 11.4355 8.99175L0.995605 7V43.2746V67.2952L9.7229 72.102L22.8214 79.31C22.2666 85.2439 22.8504 91.1869 24.4859 96.8586C25.2723 99.5679 26.2949 102.222 27.5492 104.78C28.7794 107.282 30.2365 109.697 31.9058 111.992C33.5799 114.287 35.466 116.463 37.5646 118.483C40.7583 121.565 44.4346 124.297 48.5594 126.569C52.6891 128.841 57.0069 130.511 61.4068 131.611C64.2918 132.333 67.2106 132.802 70.1294 133.032C73.0481 133.267 75.9717 133.262 78.8567 133.032V116.298C81.8526 115.93 84.7859 115.189 87.5792 114.099C90.3967 112.995 93.0742 111.537 95.5202 109.734C97.8745 108.004 100.017 105.962 101.879 103.625C102.752 102.53 103.558 101.376 104.296 100.152C105.034 98.9331 105.681 97.6865 106.24 96.417C107.432 93.7169 108.214 90.9201 108.614 88.1142C109.024 85.1933 109.015 82.2539 108.609 79.379L100.673 83.7443L100.191 84.0111C100.022 97.4197 88.5828 108.234 74.4907 108.234C73.0047 108.234 71.5477 108.114 70.1294 107.884V116.302V124.679C67.1961 124.398 64.2726 123.823 61.4021 122.949C58.5074 122.066 55.661 120.875 52.9207 119.37C50.1805 117.862 47.6764 116.104 45.4283 114.159C43.1994 112.222 41.2167 110.097 39.4943 107.815C37.7817 105.548 36.325 103.133 35.1382 100.607C33.9177 98.0131 32.9816 95.3084 32.3496 92.5393C31.7079 89.7472 31.3702 86.8906 31.3461 84.0157C31.3219 80.9936 31.6498 77.9577 32.3397 74.9539L24.476 70.6255L9.72761 62.5021V38.4862V17.1657C20.1339 19.1529 30.2173 20.6846 40.1266 21.7564C45.2019 22.3084 50.2338 22.7362 55.2415 23.0444C68.1372 23.8447 80.8686 23.8447 93.7643 23.0444C98.7672 22.7362 103.799 22.3084 108.875 21.7564V21.7426Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M138.169 114.948C144.098 104.589 146.828 92.5139 146.896 80.5957V43.3643L138.173 38.562L133.807 36.1609L125.08 31.354L116.352 36.1563L103.254 43.3689C98.1499 39.942 92.457 37.4488 86.494 35.9631C83.638 35.2547 80.7193 34.7717 77.7667 34.5325C74.8769 34.2979 71.9582 34.2933 69.0395 34.5233C66.1207 34.7579 63.1972 35.2317 60.3122 35.9493C55.9123 37.044 51.594 38.7138 47.4643 40.9861C43.3395 43.2585 39.6637 45.9908 36.4699 49.0727C34.3761 51.0966 32.4848 53.2724 30.8107 55.5677C29.1414 57.8585 27.6843 60.2734 26.4541 62.7757L34.0478 66.9524L41.6562 71.1429C40.4887 73.8016 39.6973 76.5938 39.292 79.4457C38.882 82.3252 38.8721 85.2645 39.2821 88.1854C39.6777 90.9914 40.4594 93.7881 41.651 96.4882C42.2106 97.7578 42.8572 99.0043 43.5954 100.223C44.3335 101.447 45.1439 102.606 46.0123 103.696C47.8745 106.033 50.0169 108.075 52.3712 109.805C54.8172 111.603 57.4947 113.066 60.3122 114.17V104.901C52.7716 100.633 47.7107 92.7899 47.7107 83.8156C47.7107 77.8541 49.9493 72.3895 53.6593 68.1438L46.0076 63.9303L38.3997 59.7444C40.122 57.4675 42.1048 55.3377 44.3336 53.4058C46.5866 51.4555 49.0854 49.7029 51.8256 48.1941C54.5707 46.6854 57.4127 45.494 60.3122 44.6108C63.1827 43.7369 66.1062 43.1665 69.0395 42.8813C71.9582 42.5961 74.8817 42.6053 77.7667 42.8859C80.7338 43.1757 83.6573 43.7553 86.494 44.6154C89.3501 45.4802 92.1146 46.6302 94.7295 48.0561C97.489 49.5465 100.085 51.3359 102.468 53.4058L110.341 49.0727L125.085 40.9539L138.178 48.1573V80.1219C138.178 80.269 138.178 80.4116 138.178 80.5542C138.077 97.422 132.041 114.998 117.539 125.541L103.949 135.417V138.31V145.877L122.832 132.156C126.85 129.235 130.319 125.868 133.276 122.165C135.105 119.874 136.735 117.454 138.178 114.934L138.169 114.948Z"
-          fill="white"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M29.3616 123.465C15.2164 113.18 9.12301 96.1974 8.72258 79.7115L6.74005 78.6167L0 74.9046V78.0463V78.5293C0.0723662 90.4384 2.80291 102.504 8.72729 112.858C10.1698 115.379 11.8005 117.803 13.629 120.094C16.5863 123.797 20.0553 127.164 24.074 130.085L54.5258 152.215L73.4951 166.001L92.4747 152.21L95.3114 150.149V126.621C100.98 124.119 106.089 120.66 110.421 116.478C112.496 114.473 114.392 112.306 116.085 109.988C117.745 107.72 119.212 105.31 120.456 102.784C121.706 100.255 122.738 97.6096 123.524 94.8681C124.726 90.6868 125.372 86.2847 125.372 81.7401C125.372 77.1954 124.726 72.7979 123.524 68.6166C122.733 65.8751 121.706 63.2256 120.456 60.6956C119.207 58.1703 117.74 55.7645 116.085 53.4922L108.497 57.6735L100.888 61.8594C99.055 59.5686 96.9128 57.5125 94.5199 55.7508C92.1125 53.9752 89.4449 52.494 86.5888 51.3763C83.8389 50.2953 80.9154 49.5455 77.8615 49.1821C76.4335 49.0119 74.9713 48.9199 73.4951 48.9199C72.0188 48.9199 70.5619 49.0119 69.1291 49.1821C66.08 49.5501 63.1517 50.2999 60.4018 51.3763C57.5409 52.494 54.8781 53.9752 52.4707 55.7508L60.4018 60.116L60.8889 60.3782C64.6134 58.3819 68.912 57.2365 73.4904 57.2365C84.5576 57.2365 93.9895 63.9063 97.603 73.2625L105.25 69.0536L112.858 64.8677C114.064 67.4298 115.01 70.13 115.651 72.9405C116.298 75.7694 116.64 78.7133 116.64 81.7308C116.64 84.7484 116.298 87.6923 115.651 90.5258C115.01 93.3363 114.069 96.0364 112.858 98.5986C111.652 101.152 110.185 103.557 108.487 105.802C106.74 108.107 104.748 110.232 102.548 112.141C100.334 114.068 97.9067 115.775 95.3015 117.228C92.5757 118.76 89.6521 120.011 86.5789 120.94V131.34L86.5695 146.023L73.4856 155.531L59.3648 145.269L29.3517 123.456L29.3616 123.465Z"
-          fill="white"
-        />
-      </svg>
-    </>
+          {/* FOOTER */}
+          <div className="nav-footer flex items-end justify-between border-t border-black/10 pt-6 mt-6">
+            <div className="hidden md:block text-sm text-neutral-500">
+              The helpful robotics company
+            </div>
+            <div className="text-sm text-neutral-500">Launching 2026</div>
+            <a
+              href="/beta"
+              className="flex items-center gap-2 text-sm text-neutral-500 hover:text-black transition-colors"
+            >
+              Beta Application
+              <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

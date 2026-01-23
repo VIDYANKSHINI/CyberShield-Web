@@ -22,38 +22,14 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "events",
     label: "Events",
-    type: "mega",
-    columns: [
-      {
-        heading: "Past Events",
-        links: [
-          { label: "Event Details", href: "/events/past" },
-          { label: "Gallery", href: "/events/gallery" },
-        ],
-      },
-      {
-        heading: "Future events",
-        links: [
-          { label: "Event Details", href: "/events/future" },
-          { label: "Register", href: "/events/register" },
-        ],
-      },
-    ],
+    type: "simple",
+    href: "/events",
   },
   {
     id: "gallery",
     label: "Gallery",
-    type: "dropdown",
-    columns: [
-      {
-        heading: "Gallery",
-        links: [
-          { label: "Workshop", href: "/workshop" },
-          { label: "Web Dev", href: "/webdev" },
-          { label: "CTF", href: "/CTF" },
-        ],
-      },
-    ],
+    type: "simple",
+    href: "/gallery",
   },
   { id: "Team", label: "Team", href: "/team", type: "simple" },
   { id: "About us", label: "About us", href: "/about", type: "simple" },
