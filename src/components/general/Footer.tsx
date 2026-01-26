@@ -98,6 +98,7 @@ const Footer = () => {
         scrollTrigger: {
           trigger: footerRef.current,
           start: "top 85%",
+          scroller: document.documentElement,
         },
         y: 30, // Reduced animation distance slightly
         opacity: 0,
@@ -110,6 +111,7 @@ const Footer = () => {
         scrollTrigger: {
           trigger: footerRef.current,
           start: "top 95%",
+          scroller: document.documentElement,
         },
         opacity: 0,
         y: 20,
