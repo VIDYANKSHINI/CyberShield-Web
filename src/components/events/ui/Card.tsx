@@ -11,7 +11,7 @@ export const DetailedEventCard: React.FC<DetailedEventCardProps> = ({
   event,
 }) => {
   return (
-    <article className="bg-white rounded-2xl overflow-hidden shadow-[0_4px_20px_-12px_rgba(0,0,0,0.1)] border border-zinc-100 group hover:shadow-lg transition-all duration-300">
+    <article className="bg-white rounded-2xl overflow-hidden shadow-[0_4px_20px_-12px_rgba(0,0,0,0.1)] group hover:shadow-lg transition-all duration-300">
       <div className="flex flex-col md:flex-row">
         {/* Optional Image Section */}
         {event.image ? (

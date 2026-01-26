@@ -63,6 +63,7 @@ const Hero = () => {
           start: "top top",
           end: "bottom top",
           scrub: true,
+          scroller: document.documentElement,
         },
       });
 
@@ -76,6 +77,7 @@ const Hero = () => {
           start: "top top",
           end: "40% top", // Finish fading before section is halfway done
           scrub: true,
+          scroller: document.documentElement,
         },
       });
     },
@@ -86,7 +88,7 @@ const Hero = () => {
     <div ref={container} className="bg-white">
       <section
         ref={triggerRef}
-        className="relative min-h-[100vh] flex flex-col pt-32 md:pt-48 overflow-hidden"
+        className="relative min-h-[60vh] flex flex-col pt-32 md:pt-48 overflow-hidden"
       >
         {/* TEXT CONTAINER */}
         <div
