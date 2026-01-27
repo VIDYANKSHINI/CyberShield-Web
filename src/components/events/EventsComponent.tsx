@@ -52,14 +52,14 @@ const EventsComponent: React.FC<EventsHeroProps> = ({ events = [] }) => {
          FIX 2: Created a constrained "Card" or "Wrapper" for the whole component.
          This centers the entire layout on the screen and gives it structure.
       */}
-      <div className="w-full max-w-[1440px] bg-white overflow-hidden flex flex-col lg:flex-row min-h-screen lg:h-[800px]">
+      <div className="w-full max-w-360 bg-white overflow-hidden flex flex-col lg:flex-row min-h-screen lg:h-200">
         {/* LEFT COLUMN: Navigation & Calendar 
           FIX 3: Increased width share (lg:w-[40%]) so it doesn't look cramped.
         */}
         <div className="w-full lg:w-[40%] xl:w-[35%] bg-white border-r border-zinc-100 flex flex-col relative z-20">
           <div className="p-8 lg:p-10 h-full flex flex-col">
             {/* Header Area */}
-            <div className="mb-6 flex-shrink-0">
+            <div className="mb-6 shrink-0">
               <h1 className="text-3xl lg:text-4xl font-['Syne'] font-bold text-black tracking-tight mb-2">
                 Events
               </h1>
@@ -94,7 +94,7 @@ const EventsComponent: React.FC<EventsHeroProps> = ({ events = [] }) => {
         */}
         <div className="flex-1 bg-zinc-50/50 relative flex flex-col h-full overflow-hidden">
           {/* Decorative Gradient */}
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-50/50 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute top-0 right-0 w-100 h-100 bg-indigo-50/50 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/4" />
 
           {/* Scrollable Content Area 
              FIX 6: This is the nested scroll container. 
@@ -116,7 +116,7 @@ const EventsComponent: React.FC<EventsHeroProps> = ({ events = [] }) => {
               </div>
             </header>
 
-            <div ref={detailsPanelRef} className="min-h-[200px]">
+            <div ref={detailsPanelRef} className="min-h-50">
               {selectedEvents.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-zinc-400 py-12">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-zinc-100">

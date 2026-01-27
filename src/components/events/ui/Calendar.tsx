@@ -144,7 +144,7 @@ export const CalendarShim: React.FC<CalendarProps> = ({
         className="w-full h-full bg-white rounded-[24px] shadow-[0_30px_60px_-12px_rgba(0,0,0,0.08)] p-6 flex flex-col border border-zinc-100 antialiased font-['Manrope']"
       >
         {/* --- Header --- */}
-        <div className="flex items-end justify-between mb-8 pb-4 border-b border-zinc-100 flex-shrink-0">
+        <div className="flex items-end justify-between mb-8 pb-4 border-b border-zinc-100 shrink-0">
           <div>
             <span className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-1 block">
               {format(currentDate, "yyyy")}
@@ -171,7 +171,7 @@ export const CalendarShim: React.FC<CalendarProps> = ({
         </div>
 
         {/* --- Weekdays --- */}
-        <div className="grid grid-cols-7 mb-3 flex-shrink-0">
+        <div className="grid grid-cols-7 mb-3 shrink-0">
           {weekDays.map((d) => (
             <div
               key={d}
@@ -186,7 +186,7 @@ export const CalendarShim: React.FC<CalendarProps> = ({
         {/* Changed h-[380px] to flex-1 to fill remaining vertical space */}
         <div
           ref={gridRef}
-          className="grid grid-cols-7 grid-rows-6 gap-2 flex-1 min-h-[380px]"
+          className="grid grid-cols-7 grid-rows-6 gap-2 flex-1 min-h-95"
         >
           {calendarDays.map((day) => {
             const formattedDate = format(day, "yyyy-MM-dd");
@@ -274,7 +274,7 @@ export const CalendarShim: React.FC<CalendarProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400 font-medium flex-shrink-0">
+        <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400 font-medium shrink-0">
           <span>
             {
               events.filter((e) => isSameMonth(parseISO(e.date), currentDate))

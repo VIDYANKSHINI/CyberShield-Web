@@ -149,14 +149,14 @@ export default function Navbar() {
       />
       <div
         ref={menuRef}
-        className="pointer-events-auto relative overflow-hidden bg-white/80 backdrop-blur-2xl border border-black/10 shadow-sm rounded-2xl w-full md:w-[720px] h-[60px]"
+        className="pointer-events-auto relative overflow-hidden bg-white/80 backdrop-blur-2xl border border-black/10 shadow-sm rounded-2xl w-full md:w-180 h-15"
       >
         {/* Navbar Header */}
-        <div className="absolute top-0 left-0 w-full flex items-center justify-between px-1 h-[60px] z-20">
+        <div className="absolute top-0 left-0 w-full flex items-center justify-between px-1 h-15 z-20">
           <a
             href="/"
             aria-label="Home"
-            className="flex items-center justify-center p-2 w-[48px] h-[48px] md:w-[60px] md:h-[60px] group"
+            className="flex items-center justify-center p-2 w-12 h-12 md:w-15 md:h-15 group"
           >
             <LogoIcon />
           </a>
@@ -167,16 +167,16 @@ export default function Navbar() {
           </div>
           <button
             onClick={toggleMenu}
-            className="w-[48px] h-[48px] md:w-[60px] md:h-[60px] flex items-center justify-center group cursor-pointer"
+            className="w-12 h-12 md:w-15 md:h-15 flex items-center justify-center group cursor-pointer"
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
           >
             <div className="relative w-5 h-5 flex items-center justify-center">
               <span
-                className={`absolute h-[2px] bg-black transition-all duration-300 ease-out ${isOpen ? "w-5 rotate-45 top-1/2 -translate-y-1/2" : "w-5 -translate-y-1"}`}
+                className={`absolute h-0.5 bg-black transition-all duration-300 ease-out ${isOpen ? "w-5 rotate-45 top-1/2 -translate-y-1/2" : "w-5 -translate-y-1"}`}
               />
               <span
-                className={`absolute h-[2px] bg-black transition-all duration-300 ease-out ${isOpen ? "w-5 -rotate-45 top-1/2 -translate-y-1/2" : "w-5 translate-y-1"}`}
+                className={`absolute h-0.5 bg-black transition-all duration-300 ease-out ${isOpen ? "w-5 -rotate-45 top-1/2 -translate-y-1/2" : "w-5 translate-y-1"}`}
               />
             </div>
           </button>
@@ -186,7 +186,7 @@ export default function Navbar() {
         <div
           id="sunday-nav-content"
           ref={contentRef}
-          className="absolute inset-0 pt-[80px] px-6 pb-6 flex flex-col justify-between opacity-0 invisible"
+          className="absolute inset-0 pt-20 px-6 pb-6 flex flex-col justify-between opacity-0 invisible"
         >
           <div className="flex flex-col md:grid md:grid-cols-2 gap-8 h-full overflow-hidden">
             {/* Nav Links */}
